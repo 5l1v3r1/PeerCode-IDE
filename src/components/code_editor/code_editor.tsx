@@ -9,19 +9,18 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/theme-dracula";
 import 'ace-builds/src-noconflict/theme-xcode'
-import {Brush} from '@material-ui/icons'
 import './code_editor.css'
 import Sketch from 'react-p5'
 import p5Types from 'p5'
+import userMedia  from './user_video_player'
 //@ts-ignore
 import io from 'socket.io-client'
 import Firebase from '../../contexts/Firebase/Firebase'
-import IOSSwitch from './IosSwitch' 
 var socket:any;
 let ENDPOINT='http://localhost:5000';
 var drawing_points:any[]=[];
 var current_path:any[]=[];
-var row=0,column=0;
+var current_peer_points:any[]=[]
 const useStyles=makeStyles({
     root:{
         display:'flex',
@@ -57,52 +56,67 @@ const useStyles2 = makeStyles((theme: Theme) =>
     },
   }),
 );
-const OtherInstanceUser=()=>{
-    const classes=useStyles()
-    return(
-    <div className='users_online_grid'>
-
-    </div>
-    )
+const CAPTURE_OPTIONS ={
+    audio:false,
+    video:{ facingMode : 'environment' }
 }
-
 export default()=>{
-    const canvasRef = useRef(null)
-    const [peerDraw,handlepeer]=useState<any>('')
+    const videoRef=useRef();
+    const mediaStream = userMedia(CAPTURE_OPTIONS)
+    const [media,setMedia]=useState<any>(null)
     const [eraser,setEraser]=useState<any>(true)
-    const [native,setNative]=useState<any>(false)
     const [ideLanguage,SetIdeLanguage]=useState<any>('c_cpp')
     const [theme,setTheme]=useState<any>('dracula')
     const [strokeWeight,setStrokeWeight]=useState<any>(4)
     const [checked,setChecked]=useState<any>(false)
     const [color,setColor]=useState<any>('black')
-    const contextRef = useRef(null)
-    const [users,setUsers]=useState<any[]>([])
     const [name,setName]=useState<any>('')
+    const [darkMode,setDarkMode]=useState<any>('black')
     const [room,setRoom]=useState<any>('')
-    const [joinMessage,SetJoinMessage]=useState<any>('')
     const [fillCode,setFillCode]=useState<any>('')
-    const [isDrawing,SetIsDrawing]=useState<any>(false)
-    const [darkMode,setDarkMode]=useState<any>('white')
     const firebase = new Firebase()
-
+    
+    if(mediaStream && videoRef.current
+        && 
+        //@ts-ignore
+        !videoRef.current.srcObject ){
+            //@ts-ignore
+            videoRef.current.srcObject = mediaStream;
+        }
+    
     //p5 commands..
     const setup = (p5 : p5Types , canvasRef : Element ) =>{
         p5.createCanvas(1000,1000).parent(canvasRef)
     }
+
+    const drawPoints = ( p5 : p5Types ) => {
+        p5.background(darkMode);
+        p5.stroke(color);
+        p5.strokeWeight(strokeWeight)
+        p5.noFill();
+        p5.beginShape();
+
+        for(var i=0;i<current_peer_points.length;i++){
+            p5.vertex(current_peer_points[i].x,current_peer_points[i].y)
+        }
+        p5.endShape()
+    }
+
     const draw = ( p5 : p5Types ) => {
         p5.background(darkMode);
         p5.stroke(color);
         p5.strokeWeight(strokeWeight)
         p5.noFill();
-            drawing_points.forEach(Rowpoints=>{
-                p5.beginShape();
-                Rowpoints.forEach((indivPoints:any)=>{
-                    p5.vertex(indivPoints.x,indivPoints.y)
-                })
-                p5.endShape()
-            })
+        drawPoints(p5)
+        drawing_points.forEach(Rowpoints=>{
+            p5.beginShape();
+            for(var i=0;i<Rowpoints.length;i++){
+            p5.vertex(Rowpoints[i].x,Rowpoints[i].y)
+            }
+            p5.endShape()
+        })
     }
+
     const handleEraser=()=>{
         if(eraser){
         setStrokeWeight(10)
@@ -125,36 +139,36 @@ export default()=>{
         else
         setTheme('dracula')
     }
-    const clearArray=()=>{
+    const MouseRelease=()=>{
         current_path=[]
-        // socket.emit('handle_end_draw',{room})
+        current_peer_points=[]
     }
-    const realtimeDraw=()=>{
+    
+    const MousePressed=()=>{
         drawing_points.push(current_path)
-        // socket.emit('canvas_point_push',{current_path,room})
     }
+
     const handleSave=(value:any)=>{
         socket.emit('code_request',{name,room,value},(error:any)=>{
             if(error)
             alert(error)
         })
     }
+
     const handleIdeLang=(e:any)=>{
         SetIdeLanguage(e.target.value)
-    }
-    const handleTheme=()=>{
-       
-    }
-    //@ts-ignore
-    const test = (e) => {
-        //@ts-ignore
-        handlepeer('started')
-        console.log(e)
+    } 
+
+    const MouseDragged = (e:any) => {
         const mouse_points={x:e.mouseX,y:e.mouseY}
         current_path.push(mouse_points)
-        // socket.emit('canvas_test',{mouse_points,room})
+        socket.emit('draw_peer',{mouse_points,room})
+    }  
+    const handleCanPlay = () => {
+        //@ts-ignore
+        videoRef.current.play();
     }
-    
+
     useEffect(()=>{
     const parsed=queryString.parse(window.location.search.slice(1))
     //@ts-ignore
@@ -179,25 +193,17 @@ export default()=>{
             setFillCode(data)
         })
         console.log('callleddllll')
-        
     },[fillCode])
-    // useEffect(()=>{
-    //     socket.on('canvas_test_rec',(data:any)=>{
-    //         current_path.push(data.mouse_points)
-    //     })
-    //     socket.on('canvas_point_push_rec',(data:any)=>{
-    //         drawing_points.push(data.mouse_points)
-    //     })
-    //     socket.on('canvas_end_draw',(data:any)=>{
-    //         clearArray()
-    //     })
-    // },[peerDraw,color])
+    useEffect(()=>{
+        socket.on('draw_peer_catch',(data:any)=>{
+            current_peer_points.push(data.mouse_points)
+        })
+    })
+    
     const classes=useStyles()
     const classes2=useStyles2()
     return(
         <div className={classes.root}>
-            <OtherInstanceUser
-            />
             <div>
                 <Component.AppBar 
                 position='static' 
@@ -240,9 +246,9 @@ export default()=>{
             <Sketch setup={setup} 
             draw={draw}  
             className="our_lovely_canvas"
-            mouseDragged={test} 
-            mousePressed={realtimeDraw}
-            mouseReleased={clearArray}/>
+            mouseDragged={MouseDragged} 
+            mousePressed={MousePressed}
+            mouseReleased={MouseRelease}/>
             </Component.Paper>
             <Component.Paper className="side-boxes" elevation={2}>
             <section className="console-headers">OUTPUT CONSOLE</section>
@@ -255,6 +261,9 @@ export default()=>{
                 />
             </Component.Paper>
             </Component.Grid>
+            <video 
+            //@ts-ignore
+            ref={videoRef} onCanPlay={handleCanPlay} autoPlay playsInline muted />
         </div>
     )
 }

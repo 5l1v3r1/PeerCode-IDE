@@ -15,6 +15,7 @@ const rooms=[]
 var session_destroy=(chunk)=>{
     console.log(`Room has been disconnected`)
 }
+const video_rooms=[]
 console.log(rooms)
 app.get('/room_creation/:room/:name',(req,res,next)=>{
     if(rooms[req.params.room]){
@@ -37,17 +38,9 @@ var newConnection=(socket)=>{
         socket.to(data.room).broadcast.emit('receive',data.value)
         callback()
     })
-    socket.on('canvas_test',(data)=>{
-        socket.to(data.room).broadcast.emit('canvas_test_rec',data)
-    })
-    socket.on('canvas_point_push',(data)=>{
-        socket.to(data.room).broadcast.emit('canvas_point_push_rec',data)
-    })
-    socket.on('handle_end_draw',(data)=>{
-        socket.to(data).broadcast.emit('canvas_end_draw',data)
-    })
-    
-
+    socket.on('draw_peer',(data)=>{
+        socket.to(data.room).broadcast.emit('draw_peer_catch',data)
+    })    
 }
 io.sockets.on('connection',newConnection)
 server.listen(5000,()=>{
