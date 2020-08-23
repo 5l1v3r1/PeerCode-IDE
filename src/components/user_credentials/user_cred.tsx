@@ -1,12 +1,9 @@
 import React,{useEffect} from 'react'
 import Firebase from '../../contexts/Firebase/Firebase'
-import AuthModal from './AuthModal'
+import AuthModal from './user_credentials'
 import Particles from 'react-particles-js'
 export default()=>{
     const firebase = new Firebase()
-    useEffect(() => {
-        console.log('work dude')
-    })
     return(
         <div>
         <Particles 
@@ -20,8 +17,11 @@ export default()=>{
               density: { 
                 enable: true, 
                 value_area: 1500, 
-              } 
-            }, 
+              }, 
+            },
+            lineLinked:{
+              enable:false
+            } 
           }, 
         }} 
         /> 

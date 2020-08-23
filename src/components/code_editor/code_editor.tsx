@@ -63,7 +63,6 @@ const CAPTURE_OPTIONS ={
 export default()=>{
     const videoRef=useRef();
     const mediaStream = userMedia(CAPTURE_OPTIONS)
-    const [media,setMedia]=useState<any>(null)
     const [eraser,setEraser]=useState<any>(true)
     const [ideLanguage,SetIdeLanguage]=useState<any>('c_cpp')
     const [theme,setTheme]=useState<any>('dracula')
