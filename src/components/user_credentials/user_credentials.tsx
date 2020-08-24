@@ -5,7 +5,13 @@ import axios from 'axios'
 import {Routes} from  '../routes/routes'
 import {makeStyles} from '@material-ui/core/styles'
 import './css/AuthModal.css' 
+//@ts-ignore
+import { v1 as uuid} from 'uuid'
+
 const backendUrl='http://localhost:5000'
+const styles={
+    transition:'all 1s ease-in'
+}
 const CenterClass=makeStyles({
     root:{
         display:'flex',
@@ -24,6 +30,8 @@ const CenterClass=makeStyles({
         alignItems:'center',
         justifyContent:'center',
         height:'100vh',
+        position:'relative',
+        zIndex:9999
     },
     themed_button: {
         background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
@@ -35,7 +43,7 @@ const CenterClass=makeStyles({
         padding: '0 30px',
       },
 })
-export default()=>{
+export default(props:any)=>{
     const [details,SetDetails]=useState<any>({
         username:'',
         room_id:''
@@ -54,12 +62,13 @@ export default()=>{
             if(res.data==='exist')
             return alert('this room exist dude')
             window.sessionStorage.setItem(`secrets`, JSON.stringify(details));
-            window.location.href=`${Routes.editor_page}/?room=${details.room_id}&name=${details.username}`
+            const id=uuid()
+            window.location.href=`/rooms/${id}`
         })
     }
     const classes=CenterClass();    
     return(
-    <div className={`${classes.parent} clip-background`}>
+    <div className={`${classes.parent} clip-background`} style={{...styles,opacity:props.show}}>
     <Component.Container maxWidth='sm'>   
     <Component.Grid item xs>    
     <div className="banner">PeerCode IDE</div> 

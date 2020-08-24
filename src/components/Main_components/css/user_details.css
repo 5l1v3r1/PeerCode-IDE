@@ -10,3 +10,30 @@
     color: white !important;
     font-size: 12px !important;
 }
+
+.info_icon{
+    font-size: 30px !important;
+    position: absolute;
+    border-radius: 50%;
+    top: 90vh;
+    left: 5vh;
+    cursor: pointer;
+    transition: 0.5s ease !important;
+    z-index: 9999999;
+    color: white;
+}
+.github{
+    font-size: 25px !important;
+    position: absolute;
+    border-radius: 50%;
+    top: 45vh !important;
+    left: 5.3vh;
+    cursor: pointer;
+    transition: 0.5s ease !important;
+    z-index: 9999999;
+    color: white;
+}
+.info_icon:hover{
+    transform: scale(1.2);
+    color:white;
+}
