@@ -9,6 +9,8 @@ You have a Seperate **Canvas Board** where you can discuss your logic by noting 
 You can share your Code Link and When other user Edits your code you will be able to see the code manipulation Live.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### `developement Shots`
+![loading image....](https://github.com/ShubhamChaudharyy/PeerCode-IDE/blob/master/Developement_Shots/Screenshot%20(221).png)
 
 ## Available Scripts
 
